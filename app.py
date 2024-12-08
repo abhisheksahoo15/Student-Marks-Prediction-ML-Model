@@ -55,3 +55,6 @@ if st.button("Show Prediction History"):
         st.dataframe(data_store)
     else:
         st.info("No predictions made yet.")
+
+
+st.write("Copyright Abhishek Sahoo (The Coding Show).")
