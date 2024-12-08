@@ -1,50 +1,46 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import pandas as pd
-from flask import Flask, request, render_template
 import joblib
+import streamlit as st
 
-app = Flask(__name__)
-
+# Load the model
 model = joblib.load("student_marks_predictor_model.pkl")
 
+# Initialize a dataframe to store user inputs and predictions
 df = pd.DataFrame()
 
+# Streamlit app title
+st.title("Student Marks Predictor")
+st.write("Enter the number of study hours per day to predict your marks.")
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+# Input feature
+study_hours = st.number_input("Study Hours", min_value=0, max_value=24, step=1, value=1)
 
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    global df
-
-    input_features = [int(x) for x in request.form.values()]
-    features_value = np.array(input_features)
-
-    # validate input hours
-    if input_features[0] < 0 or input_features[0] > 24:
-        return render_template('index.html',
-                               prediction_text='Please enter valid hours between 1 to 24 if you live on the Earth')
-
-    output = model.predict([features_value])[0][0].round(2)
-
-    # input and predicted value store in df then save in csv file
-    df = pd.concat([df, pd.DataFrame({'Study Hours': input_features, 'Predicted Output': [output]})], ignore_index=True)
-    print(df)
-    df.to_csv('smp_data_from_app.csv')
-    if (output > 100):
-        return render_template('result.html',
-                               prediction_text='You will get [{}%] marks, when you do study [{}] hours per day '.format(
-                                100, int(features_value[0])))
-
+# Predict button
+if st.button("Predict"):
+    # Validate input hours
+    if study_hours < 0 or study_hours > 24:
+        st.error("Please enter valid hours between 1 to 24 if you live on the Earth.")
     else:
-        return render_template('result.html',
-                               prediction_text='You will get this [{}%] marks, when you do study [{}] hours per day '.format(
-                                   output, int(features_value[0])))
+        # Prepare input for prediction
+        features_value = np.array([[study_hours]])
+        output = model.predict(features_value)[0][0].round(2)
 
+        # Save input and output in the dataframe
+        global df
+        df = pd.concat([df, pd.DataFrame({'Study Hours': [study_hours], 'Predicted Output': [output]})], ignore_index=True)
+        df.to_csv('smp_data_from_app.csv', index=False)
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080)
+        # Display prediction
+        if output > 100:
+            st.success(f"You will get [100%] marks when you study [{study_hours}] hours per day.")
+        else:
+            st.success(f"You will get [{output}%] marks when you study [{study_hours}] hours per day.")
+
+# Display stored data
+if st.button("Show Prediction History"):
+    if not df.empty:
+        st.write("### Prediction History")
+        st.dataframe(df)
+    else:
+        st.info("No predictions made yet.")
