@@ -7,7 +7,7 @@ import streamlit as st
 model = joblib.load("student_marks_predictor_model.pkl")
 
 # Initialize a dataframe to store user inputs and predictions
-df = pd.DataFrame()
+data_store = pd.DataFrame()
 
 # Streamlit app title
 st.title("Student Marks Predictor")
@@ -27,9 +27,8 @@ if st.button("Predict"):
         output = model.predict(features_value)[0][0].round(2)
 
         # Save input and output in the dataframe
-        global df
-        df = pd.concat([df, pd.DataFrame({'Study Hours': [study_hours], 'Predicted Output': [output]})], ignore_index=True)
-        df.to_csv('smp_data_from_app.csv', index=False)
+        data_store = pd.concat([data_store, pd.DataFrame({'Study Hours': [study_hours], 'Predicted Output': [output]})], ignore_index=True)
+        data_store.to_csv('smp_data_from_app.csv', index=False)
 
         # Display prediction
         if output > 100:
@@ -39,8 +38,8 @@ if st.button("Predict"):
 
 # Display stored data
 if st.button("Show Prediction History"):
-    if not df.empty:
+    if not data_store.empty:
         st.write("### Prediction History")
-        st.dataframe(df)
+        st.dataframe(data_store)
     else:
         st.info("No predictions made yet.")
