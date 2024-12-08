@@ -4,7 +4,11 @@ import joblib
 import streamlit as st
 
 # Load the model
-model = joblib.load("student_marks_predictor_model.pkl")
+try:
+    model = joblib.load("student_marks_predictor_model.pkl")
+except FileNotFoundError:
+    st.error("Model file not found. Please ensure 'student_marks_predictor_model.pkl' is available.")
+    st.stop()
 
 # Initialize a dataframe to store user inputs and predictions
 data_store = pd.DataFrame()
@@ -24,11 +28,19 @@ if st.button("Predict"):
     else:
         # Prepare input for prediction
         features_value = np.array([[study_hours]])
-        output = model.predict(features_value)[0][0].round(2)
+        try:
+            output = model.predict(features_value)[0][0].round(2)
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
+            st.stop()
 
         # Save input and output in the dataframe
-        data_store = pd.concat([data_store, pd.DataFrame({'Study Hours': [study_hours], 'Predicted Output': [output]})], ignore_index=True)
-        data_store.to_csv('smp_data_from_app.csv', index=False)
+        new_entry = pd.DataFrame({'Study Hours': [study_hours], 'Predicted Output': [output]})
+        data_store = pd.concat([data_store, new_entry], ignore_index=True)
+        try:
+            data_store.to_csv('smp_data_from_app.csv', index=False)
+        except Exception as e:
+            st.warning(f"Could not save data to CSV: {e}")
 
         # Display prediction
         if output > 100:
