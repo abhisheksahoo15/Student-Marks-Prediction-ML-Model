@@ -1,5 +1,7 @@
 # Machine Learning Model (Student Marks Prediction)
 # Student Marks Prediction Model
+# Model Deployement link - 
+# https://student-marks-prediction-ml-model-czutaxvjvugg3kaedvyuot.streamlit.app/
 
 This project contains a machine learning model designed to predict student marks based on the number of hours they study. The model is implemented using Linear Regression, and a Flask web app is provided for user interaction.
 
